@@ -7,7 +7,6 @@ library("here")
 
 # Download
 
-
 ## MARDI data folders
 if (!dir_exists(here("data"))) {
   dir_create(here("data"))

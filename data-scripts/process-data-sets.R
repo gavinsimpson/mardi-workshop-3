@@ -34,7 +34,10 @@ ds1 <- read_excel(here("data/raw/01/01-spp-data.xls")) |>
   ) |>
   group_by(sample) |>
   mutate(percentage = (count / sum(count)) * 100) |>
-  ungroup()
+  ungroup() |>
+  filter(
+    count != 0
+  )
 
 # write this to data/processed/01
 if (!dir_exists(here("data/processed/01"))) {
@@ -64,6 +67,9 @@ ds3 <- read_excel(here("data/raw/03/03-spp-data.xlsx")) |>
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # write this to data/processed/03
@@ -95,7 +101,10 @@ ds4a <- read_excel(here("data/raw/04/04c-spp-data.xlsx")) |>
   ) |>
   group_by(sample) |>
   mutate(percentage = (count / sum(count)) * 100) |>
-  ungroup()
+  ungroup() |>
+  filter(
+    count != 0
+  )
 
 # write this to data/processed/04
 if (!dir_exists(here("data/processed/04"))) {
@@ -130,6 +139,9 @@ ds4b_young <- read_excel(here("data/raw/04/04e-spp-data.xlsx")) |>
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # Qaannaq data is 04b
@@ -144,6 +156,9 @@ ds4b_qaannaq <- read_excel(here("data/raw/04/04b-spp-data.xlsx")) |>
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # Station North is 4d
@@ -170,7 +185,10 @@ ds4b_station_n <- read_excel(here("data/raw/04/04d-spp-data.xlsx")) |>
   ) |>
   group_by(sample) |>
   mutate(percentage = (count / sum(count)) * 100) |>
-  ungroup()
+  ungroup() |>
+  filter(
+    count != 0
+  )
 
 ds4b <- ds4b_qaannaq |>
   bind_rows(
@@ -214,6 +232,9 @@ ds5a <-
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # write this to data/processed/03
@@ -250,6 +271,9 @@ ds5b <- read_excel(
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 write_csv(
@@ -288,6 +312,9 @@ ds5c <- read_excel(
     names_to = "taxon_code",
     values_to = "percentage",
     values_drop_na = TRUE
+  ) |>
+  filter(
+    percentage != 0
   )
 
 write_csv(
@@ -313,6 +340,9 @@ ds6 <- read_excel(here("data/raw/06/06-spp-data.xlsx")) |>
   ) |>
   mutate(
     percentage = percentage * 100 # data are proportions
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # write this to data/processed/03
@@ -349,7 +379,10 @@ ds7 <- read_excel(here("data/raw/07/07-spp-data.xlsx")) |>
   ) |>
   group_by(sample) |>
   mutate(percentage = (count / sum(count)) * 100) |>
-  ungroup()
+  ungroup() |>
+  filter(
+    count != 0
+  )
 
 # write this to data/processed/03
 if (!dir_exists(here("data/processed/07"))) {
@@ -381,6 +414,9 @@ ds8 <- read_excel(here("data/raw/08/08-spp-data.xlsx")) |>
   ) |>
   mutate(
     percentage = percentage * 100 # original data are proportions
+  ) |>
+  filter(
+    percentage != 0
   )
 
 # write this to data/processed/03
@@ -417,7 +453,22 @@ ds9 <- read_excel(here("data/raw/09/09-spp-data.xlsx"),
   ungroup() |>
   mutate(
     taxon_code = str_replace_all(taxon_code, "[\r\n]", "")
+  ) |>
+  filter(
+    count != 0
   )
+
+# write this to data/processed/03
+if (!dir_exists(here("data/processed/09"))) {
+  dir_create(
+    here("data/processed/09")
+  )
+}
+
+write_csv(
+  ds9,
+  file = here("data/processed/09/09-spp-data.csv")
+)
 
 ## join all data sets
 ds_all <- ds1 |>
