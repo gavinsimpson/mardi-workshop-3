@@ -47,3 +47,12 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Apple stuff
+.DS_Store
+
+# My additions so I don't expose data
+/data/
+
+# maybe opn this later?
+/slides/
