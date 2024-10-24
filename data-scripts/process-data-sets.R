@@ -60,7 +60,7 @@ ds3 <- read_excel(here("data/raw/03/03-spp-data.xlsx")) |>
   rename(
     sample = "Station" # rename a variable
   ) |>
-  mutate(dataset = rep("2", n())) |> # add a dataset column
+  mutate(dataset = rep("3", n())) |> # add a dataset column
   relocate(dataset, .before = 1) |>
   pivot_longer(
     -c(dataset, sample),
