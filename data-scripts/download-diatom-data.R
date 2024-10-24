@@ -7,6 +7,18 @@ library("here")
 
 # Download
 
+
+## MARDI data folders
+if (!dir_exists(here("data"))) {
+  dir_create(here("data"))
+}
+if (!dir_exists(here("data/raw"))) {
+  dir_create(here("data/raw"))
+}
+if (!dir_exists(here("data/processed"))) {
+  dir_create(here("data/processed"))
+}
+
 ## MARDI metadata
 drive_download("W3 MARDI_sites_metatada.xlsx",
     path = "data/mardi-site-metadata.xlsx")
