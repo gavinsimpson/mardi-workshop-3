@@ -29,8 +29,8 @@ if (!dir_exists(here(data_dir))) {
 }
 
 drive_download(
-  "W3 NPI - Diatom SST_Calibration dataset 183_2016 _ Arto email 140123.xls",
-  path = here(data_dir, "01-spp-data.xls")
+  "W3 NPI - Diatom SST_Calibration dataset 183_2016 _ Arto email 140123.xlsx",
+  path = here(data_dir, "01-spp-data.xlsx")
 )
 
 ## MARDI data set 2
@@ -129,3 +129,15 @@ drive_download(
   "W3 metadata-Emilie Arseneault.xlsx",
   path = here(data_dir, "09-spp-data.xlsx")
 )
+
+## MARDI data set 10
+data_dir <- "data/raw/10"
+if (!dir_exists(here(data_dir))) {
+  dir_create(here(data_dir))
+}
+
+drive_download(
+  "W3 Laptev Sea Compiled",
+  path = here(data_dir, "10-spp-data.xlsx")
+)
+

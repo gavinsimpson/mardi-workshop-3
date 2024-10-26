@@ -17,12 +17,15 @@ if (!dir_exists(here("data/processed"))) {
 }
 
 # Data set 1
-ds1 <- read_excel(here("data/raw/01/01-spp-data.xls")) |>
+ds1 <- read_excel(here("data/raw/01/01-spp-data.xlsx")) |>
   rename(
     sample = "Station No." # rename a variable
   ) |>
   select(
     !c("...54", "TOTAL")
+  ) |>
+  mutate(
+    sample = str_replace_all(sample, "\\.0$", "")
   ) |>
   mutate(dataset = rep("1", n())) |> # add a dataset column
   relocate(dataset, .before = 1) |>
@@ -124,13 +127,13 @@ write_csv(
 # Young Sound == 04e
 ds4b_young <- read_excel(here("data/raw/04/04e-spp-data.xlsx")) |>
   rename(
-    code = "CODE Ribeiro et al. 2017"
+    sample = "CODE Ribeiro et al. 2017"
   ) |>
   rename(
-    sample = NAME # this is what is siteID in the metadata
+    name = NAME # this is what is siteID in the metadata
   ) |>
   select(
-    !code
+    !name
   ) |>
   mutate(dataset = rep("4b", n())) |> # add a dataset column
   relocate(dataset, .before = 1) |>
@@ -149,7 +152,7 @@ ds4b_qaannaq <- read_excel(here("data/raw/04/04b-spp-data.xlsx")) |>
   rename(
     sample = "...1"
   ) |>
-  mutate(dataset = rep("4b", n())) |> # add a dataset column
+  mutate(dataset = rep("4a", n())) |> # this is 4a in metadata!!!
   relocate(dataset, .before = 1) |>
   pivot_longer(
     -c(dataset, sample),
@@ -172,9 +175,9 @@ ds4b_station_n <- read_excel(here("data/raw/04/04d-spp-data.xlsx")) |>
   filter(
     sample %in% c("1A - K33", "1K - K11")
   ) |>
-  mutate(
-    sample = str_replace(sample, " - ", "_")
-  ) |>
+  #mutate(
+  #  sample = str_replace(sample, " - ", "_")
+  #) |>
   mutate(dataset = rep("4b", n())) |> # add a dataset column
   relocate(dataset, .before = 1) |>
   pivot_longer(
@@ -237,7 +240,7 @@ ds5a <-
     percentage != 0
   )
 
-# write this to data/processed/03
+# write this to data/processed/05
 if (!dir_exists(here("data/processed/05"))) {
   dir_create(
     here("data/processed/05")
@@ -254,14 +257,11 @@ ds5b <- read_excel(
   sheet = "Caissie Data"
 ) |>
   select(
-    !c("Sample", "Lat", "Lon", "Cruise", "worker",
+    !c("Lat", "Lon", "Cruise", "worker", "Number", "Station",
       "Grand Total", "Frag SUM", "Chaetoceros SUM", "DAR") # drop these
   ) |>
-  mutate(
-    sample = paste0(Station, "/", Number)
-  ) |>
-  select(
-    !c(Station, Number)
+  rename(
+    sample = Sample
   ) |>
   relocate(sample, .before = 1) |>
   mutate(dataset = rep("5b", n())) |> # add a dataset column 
@@ -285,22 +285,22 @@ ds5c <- read_excel(
   here("data/raw/05/05-spp-data.xlsx"),
   sheet = "Nesterovich Data",
   skip = 1L
-) |> 
+) |>
+  filter(
+    !is.na(SAMPLE)
+  ) |>
   mutate(
     number = case_when(
       is.na(number) ~ "",
       .default = as.character(number)
     ),
-    number = str_remove(number, ".0") # was stored as number
-  ) |>
-  mutate(
-    mardi_sample = paste0(sample, "/", as.character(number))
-  ) |>
-  select(
-    !c("...1", cruise, number, sample, lat, long, Species)
+    number = str_remove(number, "\\.0$") # was stored as number
   ) |>
   rename(
-    sample = mardi_sample
+    sample = SAMPLE
+  ) |>
+  select(
+    !c(cruise, number, lat, long, Species, Total, station)
   ) |>
   relocate(
     sample, .before = 1
@@ -371,6 +371,7 @@ ds7 <- read_excel(here("data/raw/07/07-spp-data.xlsx")) |>
   ) |>
   mutate(dataset = rep("7", n())) |> # add a dataset column
   relocate(dataset, .before = 1) |>
+  filter(!is.na(sample)) |> # remove the total row
   pivot_longer(
     -c(dataset, sample),
     names_to = "taxon_code",
@@ -470,6 +471,56 @@ write_csv(
   file = here("data/processed/09/09-spp-data.csv")
 )
 
+## DS10
+ds10 <- read_excel(here("data/raw/10/10-spp-data.xlsx"))
+ds10 <- ds10[-c(2, 3, 4), ]
+ds10 <- ds10 |>
+  mutate(
+    across(
+      .cols = where(
+        ~ is.character(.x)
+      ) & !matches("Sample"),
+      .fns = ~ as.numeric(.x)
+    )
+  ) |>
+  pivot_longer(
+    cols = !Sample,
+    names_to = "sample",
+    values_to = "value"
+  ) |>
+  filter(
+    Sample != "Total Counted"
+  ) |>
+  pivot_wider(
+    names_from = "Sample",
+    values_from = "value"
+  ) |>
+  pivot_longer(
+    cols = !sample,
+    names_to = "taxon_code",
+    values_to = "percentage"
+  ) |>
+  mutate(
+    dataset = rep("10", n()),
+    sample = as.character(sample)
+  ) |>
+  relocate(dataset, .before = 1) |>
+  filter(
+    percentage != 0
+  )
+
+# write this to data/processed/10
+if (!dir_exists(here("data/processed/10"))) {
+  dir_create(
+    here("data/processed/10")
+  )
+}
+
+write_csv(
+  ds10,
+  file = here("data/processed/10/10-spp-data.csv")
+)
+
 ## join all data sets
 ds_all <- ds1 |>
   bind_rows(
@@ -480,7 +531,8 @@ ds_all <- ds1 |>
     ds6,
     ds7,
     ds8,
-    ds9
+    ds9,
+    ds10
   )
 
 write_csv(
