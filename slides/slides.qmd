@@ -31,6 +31,8 @@ knitr:
 highlight-style: github-dark
 ---
 
+## Transfer functions I
+
 ```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
 # knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
 #                       echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
@@ -58,112 +60,6 @@ data(WinSST)
 data(Salinity)
 data(V12.122)
 ```
-
-<!-- ## Introduction
-
-Palaeo data science workflow
-
-```{r}
-#| echo: false
-knitr::include_graphics("resources/palaeo-data-workflow.png")
-```
-
-(Source: Steve Juggins with modifications by Gavin Simpson)
-
-## Data wrangling
-
-Tasks
-
-* Clean individual data sets
-
-* Harmonise taxonomy to a common set of species --- *taxa*
-
-* Combine diatom datasets into [training set(s)]{.highlight}
-
-* Extract appropriate environmental data (to match surface sample)
-
-* Arrange data for visualization and modelling
-
-## Modelling
-
-When interested in modelling one or a few taxa then Generalized additive models are a good option
-
-* fit smooth functions of environmental variables
-* learn those functions from the data
-* not constrained to be quadratic, cubic etc
-
-Ordination methods are the standard when we are interested in modelling communities of species
-
-Model-based ordination and Joint Species Distribution Models are the new (hard) way of modelling communities
-
-. . .
-
-But... one of the problems with diatom data is that the observations are really multinomial counts (from a total) and often expressed as percentages
-
-# Ordination
-
-## Ordnung
-
-```{r}
-#| echo: false
-knitr::include_graphics("resources/ordnung.jpg")
-```
-
-## Ordination
-
-Putting things in order is exactly what we we do in ordination
-
-* we arrange our samples along gradients by fitting lines and planes through the data that describe the main patterns in those data
-
-* we map data to lower dimensions reflecting how similar the samples are to one another in terms of the variables measured
-
-Three families of models
-
-1. Linear
-2. Unimodal
-3. Distance-based
-
-## Unconstrained
-
-What is **unconstrained**
-
-First we look for major variation, then relate it to environmental variation
-
-vs. *constrained* ordination, where we only want to see what can be explained by environmental variables of interest
-
-*How well do we explain the main patterns in the species data*? vs *How large are the patterns we can explain with the measured data*?
-
-## Constrained
-
-These ordination methods are a combination of regression and ordination
-
-1. regress the covariates on each response,
-2. ordinate the fitted values
-
-(Weighted regression and weighted ordination for unimodal method CCA)
-
-Ordination axes are linear combinations of the measured covariates
-
-Use permutation tests to assess how statistically interesting covariate effects on the responses are
-
-## Methods
-
-* Unconstrained
-    - PCA
-    - CA
-    - PCO
-    - NMDS
-* Constrained
-    - RDA
-    - CCA
-    - db-RDA
-
-R package **vegan**
-
--->
-
-
-## Transfer functions I
 
 In the 1970s and early 1980s there was a great deal of concern about acid lakes and rivers in northern Europe
 
