@@ -54,5 +54,10 @@ rsconnect/
 # My additions so I don't expose data
 /data/
 
-# maybe opn this later?
-/slides/
+# maybe open this later?
+slides/01-introduction.Rmd
+slides/01-ordination-1.Rmd
+slides/02-ordination-2.Rmd
+slides/03-gams.Rmd
+slides/tranfun_talk.Rnw
+slides/transfer-function-example.code.R
