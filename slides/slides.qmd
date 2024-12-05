@@ -1,0 +1,800 @@
+---
+title: MARDI Workshop
+subtitle: "Transfer Functions"
+format:
+  aarhus-revealjs:
+    embed-resources: true
+    code-line-numbers: false
+html-math-method:
+  method: mathjax
+  url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+author:
+  - name: Gavin Simpson
+    orcid: 0000-0002-9084-8413
+    email: gavin@anivet.au.dk
+    affiliations: Aarhus University
+date: last-modified
+title-slide-attributes:
+  data-background-color: "#003d73"
+presenter:
+  name: Gavin Simpson
+  institute: Department of Animal & Veterinary Sciences
+knitr:
+  opts_chunk: 
+    echo: true
+    message: false
+    fig.align: center
+    fig.height: 5
+    fig.width: 9
+    dpi: 300
+    cache: true
+highlight-style: github-dark
+---
+
+```{r setup-options, echo = FALSE, results = "hide", message = FALSE}
+# knitr::opts_chunk$set(comment=NA, fig.align = "center", out.width = "0.7\\linewidth",
+#                       echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE)
+# knitr::knit_hooks$set(crop.plot = knitr::hook_pdfcrop)
+```
+
+```{r}
+#| label: packages
+#| echo: false
+#| message: false
+#| results: hide
+#| cache: false
+library("readr")
+library("dplyr")
+library("ggplot2")
+library("patchwork")
+library("mgcv")
+library("gratia")
+library("vegan")
+library("analogue")
+
+data(ImbrieKipp)
+data(SumSST)
+data(WinSST)
+data(Salinity)
+data(V12.122)
+```
+
+<!-- ## Introduction
+
+Palaeo data science workflow
+
+```{r}
+#| echo: false
+knitr::include_graphics("resources/palaeo-data-workflow.png")
+```
+
+(Source: Steve Juggins with modifications by Gavin Simpson)
+
+## Data wrangling
+
+Tasks
+
+* Clean individual data sets
+
+* Harmonise taxonomy to a common set of species --- *taxa*
+
+* Combine diatom datasets into [training set(s)]{.highlight}
+
+* Extract appropriate environmental data (to match surface sample)
+
+* Arrange data for visualization and modelling
+
+## Modelling
+
+When interested in modelling one or a few taxa then Generalized additive models are a good option
+
+* fit smooth functions of environmental variables
+* learn those functions from the data
+* not constrained to be quadratic, cubic etc
+
+Ordination methods are the standard when we are interested in modelling communities of species
+
+Model-based ordination and Joint Species Distribution Models are the new (hard) way of modelling communities
+
+. . .
+
+But... one of the problems with diatom data is that the observations are really multinomial counts (from a total) and often expressed as percentages
+
+# Ordination
+
+## Ordnung
+
+```{r}
+#| echo: false
+knitr::include_graphics("resources/ordnung.jpg")
+```
+
+## Ordination
+
+Putting things in order is exactly what we we do in ordination
+
+* we arrange our samples along gradients by fitting lines and planes through the data that describe the main patterns in those data
+
+* we map data to lower dimensions reflecting how similar the samples are to one another in terms of the variables measured
+
+Three families of models
+
+1. Linear
+2. Unimodal
+3. Distance-based
+
+## Unconstrained
+
+What is **unconstrained**
+
+First we look for major variation, then relate it to environmental variation
+
+vs. *constrained* ordination, where we only want to see what can be explained by environmental variables of interest
+
+*How well do we explain the main patterns in the species data*? vs *How large are the patterns we can explain with the measured data*?
+
+## Constrained
+
+These ordination methods are a combination of regression and ordination
+
+1. regress the covariates on each response,
+2. ordinate the fitted values
+
+(Weighted regression and weighted ordination for unimodal method CCA)
+
+Ordination axes are linear combinations of the measured covariates
+
+Use permutation tests to assess how statistically interesting covariate effects on the responses are
+
+## Methods
+
+* Unconstrained
+    - PCA
+    - CA
+    - PCO
+    - NMDS
+* Constrained
+    - RDA
+    - CCA
+    - db-RDA
+
+R package **vegan**
+
+-->
+
+
+## Transfer functions I
+
+In the 1970s and early 1980s there was a great deal of concern about acid lakes and rivers in northern Europe
+
+Driven mainly by losses of Salmon in Scandinavian rivers, this was a major political hot potato
+
+A vast amount of money was expended to determine the cause of the acidification --- was it due to acid emissions from power stations or some other cause?
+
+Palaeolimnological data provided conclusive proof that acid deposition was the cause
+In Europe, the Surface Waters Acidification Project (SWAP) was a major contributor to the debate
+
+## Transfer functions I
+
+Diatoms collected from 167 lakes across UK, Norway, Sweden and associated water chemistry
+
+Can we predict lake-water pH from the diatom species assemblages?
+
+Apply to diatoms counted from a sediment core from the Round Loch of Glenhead (RLGH) covering most of the Holocene
+
+## Transfer functions II
+
+Sea surface temperatures are related to global air temperatures
+
+An important arm of palaeoceanography is involved in reconstructing past climates from various proxies
+
+These past climates tell use how the world responded to previous climatic shifts and provide targets for climate modellers to try to model
+
+The data set here is the Imbrie & Kipp data set --- the data set that started it all!
+61 core-top samples from ocean cores, mainly from Atlantic
+
+27 species of planktonic foraminifera were identified in the core-top samples
+
+Summer and Winter sea surface temperatures (SST) and sea water salinity values measured at each of the 61 core locations
+
+Applied to reconstruct SST and salinity for 110 samples from Core V12-133 from the Caribbea
+
+## Transfer functions
+
+Aim: Predict the environment from observations on species & environment
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+Transfer functions
+
+Calibration
+
+Bioindication
+
+Inverse of constrained ordination
+
+ter Braak (1995) *Chemometrics and Intelligent Laboratory Systems* **28**: 165--180
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+knitr::include_graphics("resources/transferfunction.jpg")
+```
+
+:::
+
+::::
+
+## Transfer functions
+
+Matrix of species abundances $\mathbf{Y}$
+
+Vector of observations of an environmental variable $\mathbf{x}$
+
+Assume $\mathbf{Y}$ is some function $f$ of the environment plus an error term
+
+$$
+\mathbf{Y} = f(\mathbf{x}) + \varepsilon
+$$
+
+In the **classical** approach $f$ is estimated via regression of $\mathbf{Y}$ on $\mathbf{x}$
+
+Then invert $f$, $f^{-1}$, to yield an estimate of environment $\mathbf{x_0}$ from fossil species assemblage $\mathbf{y_0}$
+
+$$
+\mathbf{\hat{x}_0} = f(\mathbf{y_0})^{-1}
+$$
+
+In all but simplest cases $f^{-1}$ doesn't exist and must be estimated via optimisation
+
+## Transfer functions
+
+To avoid problems of inverting $f$, the **indirect** approach directly estimates the inverse of $f$, here $g$, from the data by regression $\mathbf{x}$ on $\mathbf{Y}$
+
+$$
+\mathbf{x} = g(\mathbf{Y}) + \varepsilon
+$$
+
+We do *not* believe that the species influence their environment!
+
+This is just a trick to avoid having to estimate $f$
+
+The predicted environment for a fossil sample $\mathbf{y_0}$ is
+
+$$\mathbf{\hat{x}_0} = g(\mathbf{y_0})$$
+
+## TF Assumptions
+
+Taxa in training set are systematically related to the environment in which they live
+Environmental variable to be reconstructed is, or is linearly related to, an ecologically important variable in the ecosystem
+
+Taxa in the training set are the same as in the fossil data and their ecological responses have not changed significantly over the timespan represented by the fossil assemblages
+
+Mathematical methods used in regression and calibration adequately model the biological responses to the environment
+
+Other environmental variables have negligible influence, or their joint distribution with the environmental variable of interest is the same as in the training set
+
+In model evaluation by cross-validation, the test data are independent of the training data --- the [secret assumption]{.highlight} until Telford & Birks (2005)
+
+## TF Methods
+
+There are quite a few ways of estimating $f$
+
+* Weighted Averaging (WA-PLS)
+* Modern Analogues (MAT)
+* Gaussian Logistic Regression / Maximum Likelihood (GLMs)
+
+Large number of potential techniques from machine learning, bioinformatics, that have yet to be investigated
+
+## Weighted averaging
+
+Species don't respond in simple ways to *environmental gradients*
+
+Maximum likelihood method fitted Gaussian curves to each species and then numerical optimisation used to predict for fossil samples
+
+Computationally very intensive, especially when doing cross-validation
+
+Weighted averaging is an approximation to this maximum likelihood approach
+
+```{r}
+#| warning: false
+#| fig.width: 10
+#| fig.height: 3
+#| echo: false
+ik <- ImbrieKipp / 100
+ik2 <- ik |>
+  bind_cols(
+    tibble(SumSST = SumSST)
+  ) |>
+  as_tibble()
+m_gpacl <- glm(G.pacL ~ SumSST + I(SumSST^2), data = ik2,
+  family = binomial(link = "logit"))
+m_gpacr <- glm(G.pacR ~ SumSST + I(SumSST^2), data = ik2,
+  family = binomial(link = "logit"))
+m_ouniv <- glm(O.univ ~ SumSST + I(SumSST^2), data = ik2,
+  family = binomial(link = "logit"))
+
+pdat <- data.frame(SumSST = seq(min(SumSST), max(SumSST), length = 100))
+pred <- pdat |>
+  mutate(
+    gpacl = predict(m_gpacl, pdat, type = "response"),
+    gpacr = predict(m_gpacr, pdat, type = "response"),
+    ouniv = predict(m_ouniv, pdat, type = "response")
+  ) |>
+  as_tibble()
+
+p_gpacl <- pred |>
+  ggplot(
+    aes(
+      x = SumSST,
+      y = gpacl
+    )
+  ) +
+  geom_point(
+    data = ik,
+    aes(
+      x = SumSST,
+      y = G.pacL
+    ),
+    colour = "red"
+  ) +
+  geom_line(colour = "blue") +
+  labs(
+    y = "G. pachyderma L",
+    x = "Summer Sea Surface Temperature"
+  )
+
+p_gpacr <- pred |>
+  ggplot(
+    aes(
+      x = SumSST,
+      y = gpacr
+    )
+  ) +
+  geom_point(
+    data = ik,
+    aes(
+      x = SumSST,
+      y = G.pacR
+    ),
+    colour = "red"
+  ) +
+  geom_line(colour = "blue") +
+  labs(
+    y = "G. pachyderma R",
+    x = "Summer Sea Surface Temperature"
+  )
+
+p_ouniv <- pred |>
+  ggplot(
+    aes(
+      x = SumSST,
+      y = ouniv
+    )
+  ) +
+  geom_point(
+    data = ik,
+    aes(
+      x = SumSST,
+      y = O.univ
+    ),
+    colour = "red"
+  ) +
+  geom_line(colour = "blue") +
+  labs(
+    y = "O. univ",
+    x = "Summer Sea Surface Temperature"
+  )
+
+p_gpacl + p_gpacr + p_ouniv + plot_layout(ncol = 3, nrow = 1)
+```
+
+## Weighted averaging
+
+:::: {.columns}
+
+::: {.column width=65%}
+A *very* simple idea
+
+In a lake, with a certain pH, a species with their pH optima close to the pH of the lake will tend to be the most abundant species present
+
+A simple estimate of the a species' pH optimum is an average of all the pH values for lakes in which that species occurs, weighted by their abundance
+
+An estimate of a lake's pH is the weighted average of the pH optima of all the species present, again weighted by species abundance
+
+:::
+
+::: {.column width=35%}
+
+```{r}
+#| warning: false
+#| fig.width: 4
+#| fig.height: 8
+#| fig.align: center
+#| out.width: 80%
+#| echo: false
+beta_gr <- coef(m_gpacr)
+beta_gl <- coef(m_gpacl)
+p_gpacr + 
+  geom_rug(x = with(ik2, weighted.mean(SumSST, G.pacR)), sides = "t", colour = "red") + 
+  geom_rug(x = -(beta_gr[2] / (2 * beta_gr[3])), sides = "t", colour = "blue") + 
+  p_gpacl + geom_rug(x = with(ik2, weighted.mean(SumSST, G.pacL)), sides = "t", colour = "red") + 
+  geom_rug(x = -(beta_gl[2] / (2 * beta_gl[3])), sides = "t", colour = "blue") +
+  plot_layout(ncol = 1, nrow = 2)
+```
+
+:::
+
+::::
+
+## Deshrinking
+
+:::: {.columns}
+
+::: {.column width=60%}
+
+By taking averages twice, the range of predicted values is smaller than the observed range
+
+Deshrinking regressions stretch the weighted averages back out to the observed range
+
+*Inverse* and *classical* deshrinking regressions
+
+* inverse: regress gradient values on WA's
+* classical: regress WA's on gradient values
+* montonic: as `inverse` but using a monotonic spline
+* Vegan also allows to just make variances equal
+
+Inverse and classical regression remove both bias and error, equalising variances deshrinks without adjusting the bias
+
+:::
+
+::: {.column width=40%}
+
+```{r}
+#| echo: false
+#| fig.height: 4
+#| fig.width: 4
+opt <- analogue:::w.avg(as.matrix(ik), SumSST)
+pred <- ((as.matrix(ik) %*% opt) / rowSums(as.matrix(ik)))[,1]
+deshrink_df <- data.frame(
+  pred = pred, sst = SumSST
+)
+m_deshrink <- lm(SumSST ~ pred)
+wa_txt <- paste("WA range:", paste(round(range(pred), 2), collapse = " - "))
+obs_txt <- paste("Observed range:", paste(round(range(SumSST), 2), collapse = " - "))
+deshrink_df |>
+  ggplot(
+    aes(x = pred, y = sst)
+  ) +
+  geom_abline(aes(intercept = 0, slope = 1)) +
+  geom_abline(aes(intercept = coef(m_deshrink)[1], slope = coef(m_deshrink)[2]), colour = "blue") +
+  geom_point(colour = "red") +
+  labs(y = "Summer SST", x = "WA estimated summer SST") +
+  annotate("text", x = 8, y = 28, label = wa_txt, hjust = 0) +
+  annotate("text", x = 8, y = 26, label = obs_txt, hjust = 0)
+```
+
+:::
+
+::::
+
+## WA in analogue
+
+**analogue** contains R code for fitting WA transfer functions and associated helper functions
+
+```{r}
+wa_m <- wa(SumSST ~ ., data = ik, deshrink = "inverse")
+wa_m
+```
+
+## WA diagnostics
+
+```{r}
+op <- par(mfrow = c(1,2))
+plot(wa_m)
+par(op)
+```
+
+## WA prediction
+
+```{r}
+pred <- predict(wa_m, V12.122)
+pred
+```
+
+## Plot predictions
+
+```{r}
+reconPlot(pred, use.labels = TRUE, ylab = "SumSST", xlab = "Depth")
+```
+
+## Tolerance down-weighting?
+
+We might expect those taxa with a narrow (realised) niche to be better indicators of $\mathbf{x}$ than those taxa with a wide niche
+
+Hence development of tolerance down-weighting in WA
+
+Basically, weight taxa inversely in proportion to their estimated tolerance width
+
+Sounds simple, but isn't --- could give infinite weight to a taxon found in a single training set sample!
+
+## Tolerance down-weighting?
+
+If done correctly it produces very competitive models
+
+Taxa with small tolerances get their tolerance replaced by
+
+1. minimum (non small) tolerance in the training set
+2. average tolerance width
+3. a fraction of the observed gradient (say 10% of SST gradient observed)
+4. the threshold for defining a small tolerance
+
+Also use Hill's N2 when computing tolerance widths to insure they are unbiased
+
+# MAT
+
+## Modern Analogue Technique
+
+WA take a species approach to reconstruction --- each species in the fossil sample that is also in the training set contributes to the reconstructed values
+
+MAT takes a more holistic approach --- we predict on basis of similar assemblages
+
+In MAT, only the most similar assemblages contribute to the fitted values
+
+MAT is steeped in the tradition of *uniformitarianism* --- **the present is the key to the past**
+
+We take as our prediction of the environment of the past, the (possibly weighted) average of the environment of the $k$ sites with the most similar assemblages
+
+Several things to define; $k$, (dis)similarity
+
+MAT is $k$ nearest neighbours ($k$-NN) regression/calibration
+
+## Modern Analogue Technique
+
+If you want to fit MAT models, my *J. Stat. Soft.* paper has fully-working examples to follow
+
+Simpson, G.L., 2007. Analogue Methods in Palaeoecology: Using the analogue Package. J. Stat. Softw. 22, 1–29.
+
+Or use `rioja::MAT()`, especially if you want *h*-block CV
+
+## rioja
+
+*analogue* is getting a little out-dated now --- it needs some love
+
+*rioja* by is very similar, provides more functionality (WA-PLS, Maximum likelihood TFs, ...) but most importantly, *h*-block cross-validation!
+
+*analogue* has better support for the Modern Analogue Technique
+
+```{r}
+library("rioja")
+wa_r <- WA(y = ik, x = SumSST)
+wa_r
+```
+
+## WA-PLS
+
+Principal Component Regression --- decompose $\mathbf{Y}$ into PCA axes and use the first $l$ of these axes to predict $\mathbf{x}$: `analogue::pcr()`
+
+Partial Least Squares is similar --- find orthogonal components in $\mathbf{Y}$ that are most correlated with $\mathbf{x}$, and use the first $l$ to predict $\mathbf{x}$
+
+WA-PLS is a non-linear version of PLS --- use row & column sums to turn a linear method into a non-linear one, just like CCA does: `rioja::WAPLS()`
+
+An important aspect of fitting these models is to choose $l$ --- the number of components to retain
+
+# Model performance
+
+## Bias
+
+Bias is the tendency for the model to over or under predict
+
+Average bias is the mean of the residuals
+
+Maximum bias is found by breaking the range of the measured environment into $n$ contiguous chunks ($n = 10$ usually)
+
+Within each chunk calculate the mean of the residuals for that chunk
+
+Take the maximum value of these as the maximum bias statistic
+
+## Bias
+
+```{r}
+op <- par(mfrow = c(1,2))
+plot(wa_m)
+par(op)
+```
+
+## Crossvalidation
+
+Without cross-validation, prediction errors, measured by RMSEP, will be biased, often badly so, because we use the same data to both fit & test the model
+
+Ideally we'd have such a large training set that we can split this into a slightly smaller training set and a small test set
+
+Palaeoecological data is expensive to obtain --- in money and person-hours!
+
+Also these ecosystems are complex, species rich, noisy etc., so we want to use all our data to produce a model
+
+One solution to this problem is to use cross-validation
+
+General idea: perturb the training set in some way, build a new model on the perturbed training set and assess how well it performs
+
+If we repeat the perturbation several time we get an idea of the error in the model
+
+Several techniques; *n*-fold, leave-one-out (LOO), bootstrapping, *h*-block CV
+
+## Crossvalidation in analogue
+
+In **analogue**, several methods are available
+
+For MAT models, LOO is built into the procedure so only bootstrapping is available
+
+For WA models, both LOO and bootstrapping currently available
+
+$n$-fold CV & *h*-block will be available in a future version (!)
+
+## Leave-one-out CV
+
+LOO CV is very simple
+
+In turn, leave out each sample from the training set
+
+Build a model on the remaining samples
+
+Predict for the left out sample
+
+Calculate the RMSEP of these predictions
+
+## Leave-one-out CV
+
+```{r}
+loo_pred <- predict(wa_m, V12.122, CV = "LOO", verbose = TRUE)
+analogue::performance(wa_m)
+analogue::performance(loo_pred)
+```
+
+## Leave-one-out CV
+
+```{r}
+rioja::crossval(wa_r, verbose = FALSE)
+```
+
+## *n*-fold CV
+
+*n*-fold CV or leave-group-out CV
+
+Same as LOO but instead of leaving out one sample at a time, we leave out an entire group of samples
+
+*n* is usually 10
+
+## *h*-block CV
+
+*h*-block CV very similar to LOO & $n$-fold
+
+Instead of breaking training set into *n* groups & leaving one out at a time, we leave out all observations within*h* distance of the target sample
+
+Repeat for each sample in turn (like LOO)
+
+Useful when training data are autocorrelated --- as they often are in marine settings
+
+USe `rioja::crossval()` to do *h*-block
+
+## Bootstrapping I
+
+Bootstrapping used in machine learning to improve predictions
+
+Use bootstrapping to get more realistic RMSEP and bias statistics
+
+We draw a bootstrap sample (sampling with replacement) of the same size as our training set
+
+Build a model on the bootstrap samples
+
+Predict for the out-of-bag (OOB) samples
+
+## Bootstrapping II
+
+Bootstrap prediction for each model sample is the mean of the OOB prediction for each sample
+
+Calculate the residuals and then the RMSEP
+
+$$\mathrm{RMSEP_{boot}} = \sqrt{s_1^2 + s_2^2}$$
+
+$s_1^2$ is the standard deviation of the OOB residuals
+
+$s_2^2$ is the mean of the OOB residuals
+
+We can also calculate the more usual RMSEP $\sqrt{\sum_{i=1}^n (y_i - \hat{y}_i)^2 / n}$
+
+## Bootstrapping II
+
+```{r}
+set.seed(1234)
+sst_boot <- bootstrap(wa_m, n.boot = 999, verbose = FALSE)
+sst_boot
+```
+
+## Tuning?
+
+With PCR, PLS, WA-PLS, and MAT we face an extra challenge
+
+How to tune the model's complexity parameter: $l$ or $k$
+
+How many components should we use? How many analogues?
+
+Technically, we will underestimated RMSEP if we use CV to tune the model
+
+We need a tuning test set
+
+## Tuning?
+
+Form a test set from the training set (representative, evenly spaced) --- set aside
+
+Form a tuning or optimisation set from the training set (as above) --- set aside
+
+Build your TF using the remaining samples
+
+1. Use CV to generate RMSEP for the tuning set sample
+2. Find the value of $l$ or $k$ that gives lowest RMSEP on tuning set,
+3. Use CV to generate RMSEP for the test set using the selected value of $l$ or $k$
+
+. . .
+
+You could also use a nested CV design --- nothing readily available for *anligue* or *rioja* models though we should look at this!
+
+## Close analogues
+
+A measure of reliability for the reconstructed values can be determined from the distance between each fossil sample and the training set samples
+
+For a reconstructed value to be viewed as more reliable, it should have at least one close modern analogue in the training set
+
+Close modern analogues are defined as those modern training set samples that are as similar to a fossil sample as a low percentile of the observed distribution dissimilarities in the training set, say the 5$^{th}$ percentile
+
+## Close analogues
+
+Which samples in the core have a close match in the training set?
+
+```{r}
+v12_mdc <- minDC(wa_m, V12.122 / 100, method = "chord")
+plot(v12_mdc, use.labels = TRUE, xlab = "Depth")
+```
+
+## Sample-specific errors
+
+We can use the bootstrap approach to generate sample specific errors for each fossil sample
+
+$$\mathrm{RMSEP} = \sqrt{s^2_{1_{fossil}} + s^2_{2_{model}}}$$
+
+$s^2_{1_{fossil}}$ is the standard deviation of the bootstrap estimates for the fossil samples
+
+$s^2_{2_{model}}$ is the average bias, the mean of the bootstrap OOB residuals from the model
+
+## Sample-specific errors
+
+```{r}
+set.seed(1234)
+v12_boot <- predict(wa_m, V12.122 / 100, bootstrap = TRUE, n.boot = 999)
+reconPlot(v12_boot, use.labels = TRUE, ylab = "Summer SST", xlab = "Depth", display.error = "bars")
+```
+
+## Sick science?
+
+Juggins (*Quaternary Science Reviews*, 2013)
+
+Are transfer functions too good to be true?
+
+$\mathbf{x}$ *must* have biological/physiological control on the taxa
+
+Secondary nuisance variables are (very) problematic --- they can bias the estimated species--environment relationships
+
+You could be reconstructing variation in something else!
+
+Variation downcore that has nothing to do with $\mathbf{x}$ will show up as variation in $\mathbf{x}_0$
+
+# SWAP
+
+## SWAP Example
+
+Work through the SWAP example
